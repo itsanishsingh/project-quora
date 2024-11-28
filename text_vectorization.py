@@ -2,41 +2,36 @@ import gensim
 from gensim.utils import simple_preprocess
 from nltk import sent_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
+import joblib
 
 import numpy as np
 import pandas as pd
 
 
 class Vectorize:
-    def __init__(self, train, test):
-        self.train = train
-        self.test = test
+    def __init__(self, data):
+        self.data = data
 
     def tfidf(self):
-        tfidf = TfidfVectorizer()
+        self.tfidf = TfidfVectorizer()
 
-        train_combined = []
-        for _, val in self.train.items():
+        data_combined = []
+        for _, val in self.data.items():
             temp = list(val)
-            train_combined += temp
+            data_combined += temp
 
-        test_combined = []
-        for _, val in self.test.items():
-            temp = list(val)
-            test_combined += temp
+        data_q1, data_q2 = np.vsplit(
+            self.tfidf.fit_transform(data_combined).toarray(), 2
+        )
 
-        train_q1, train_q2 = np.vsplit(tfidf.fit_transform(train_combined).toarray(), 2)
-        test_q1, test_q2 = np.vsplit(tfidf.transform(test_combined).toarray(), 2)
+        temp1 = pd.DataFrame(data_q1)
+        temp2 = pd.DataFrame(data_q2)
+        data_idf = pd.concat([temp1, temp2], axis=1)
 
-        temp1 = pd.DataFrame(train_q1)
-        temp2 = pd.DataFrame(train_q2)
-        train_idf = pd.concat([temp1, temp2], axis=1)
+        return data_idf
 
-        temp1 = pd.DataFrame(test_q1)
-        temp2 = pd.DataFrame(test_q2)
-        test_idf = pd.concat([temp1, temp2], axis=1)
-
-        return train_idf, test_idf
+    def save(self):
+        joblib.dump(self.tfidf, "tfidf.joblib")
 
     def create_story(self):
         story = []

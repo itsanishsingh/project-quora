@@ -1,4 +1,5 @@
 from sklearn.ensemble import RandomForestClassifier
+import joblib
 
 
 class Modeller:
@@ -21,3 +22,6 @@ class Modeller:
     def predict(self, test):
         pred = self.model.predict(test)
         return pred
+
+    def save(self):
+        joblib.dump(self.model, "model.joblib")
