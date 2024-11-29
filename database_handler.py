@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, text
-from sensitive import postgres_url
+from constants import postgres_url
 
 
 class DBHandler:

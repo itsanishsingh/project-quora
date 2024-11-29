@@ -11,19 +11,40 @@ class InputPreprocessor:
     def __init__(self, data):
         self.data = data
 
-    def impute_mean(self):
+    @staticmethod
+    def impute_mean(data):
         imp = SimpleImputer()
-        self.data = imp.fit_transform(self.data)
+        return pd.Series(
+            imp.fit_transform(data.values.reshape(-1, 1)).flatten(), index=data.index
+        )
 
-    def impute_mode(self):
+    @staticmethod
+    def impute_mode(data):
         imp = SimpleImputer(strategy="most_frequent")
-        self.data = imp.fit_transform(self.data)
+        return pd.Series(
+            imp.fit_transform(data.values.reshape(-1, 1)).flatten(), index=data.index
+        )
+
+    def imputer(self):
+        print("Before imputing: ")
+        print(self.data.isnull().sum())
+        for column in self.data.columns:
+            if self.data[column].dtype in ["object"]:
+                self.data[column] = self.impute_mode(self.data[column])
+            elif self.data[column].dtype in ["float64", "int64"]:
+                self.data[column] = self.impute_mean(self.data[column])
+        print("After imputing: ")
+        print(self.data.isnull().sum())
 
     def drop_na(self):
         self.data = self.data.dropna()
 
     def drop_duplicate(self):
+        print("Before dropping duplicate: ")
+        print(self.data.duplicated().sum())
         self.data = self.data.drop_duplicates()
+        print("After dropping duplicate: ")
+        print(self.data.duplicated().sum())
 
     @staticmethod
     def remove_html(data):
@@ -63,6 +84,3 @@ class InputPreprocessor:
         ).columns
 
         self.data = self.data.drop(numerical_features, axis=1)
-
-    def remove_outlier(self):
-        return ""

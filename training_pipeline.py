@@ -16,9 +16,10 @@ def training_pipeline(data, target):
     df = reader.reader_logic()
     df = df.sample(5000, random_state=42)
     print("Read done")
+    print("Description of data: ", df.describe())
 
     preprocessor = InputPreprocessor(df)
-    preprocessor.drop_na()
+    preprocessor.imputer()
     preprocessor.drop_duplicate()
     df = preprocessor.data
     print("Initial preprocess done")
