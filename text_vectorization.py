@@ -55,5 +55,25 @@ class Vectorize:
             story, total_examples=self.model.corpus_count, epochs=self.model.epochs
         )
 
+    def vectorize(self, data):
+        def document_vector(data):
+            doc = [word for word in data.split() if word in self.model.wv.index_to_key]
+            if not doc:
+                return np.zeros(self.model.vector_size)
+            return np.mean(self.model.wv[doc], axis=0)
+
+        temp_data = []
+        for column in data.columns:
+            for doc in data[column].values:
+                temp_data.append(document_vector(doc))
+        data = np.array(temp_data)
+
+        temp1, temp2 = np.vsplit(data, 2)
+        temp1 = pd.DataFrame(temp1)
+        temp2 = pd.DataFrame(temp2)
+        data = pd.concat([temp1, temp2], axis=1)
+
+        return data
+
     def save_w2v(self):
         joblib.dump(self.model, "w2v.joblib")

@@ -1,11 +1,8 @@
 from sqlalchemy import create_engine, text
-from sensitive import *
+from sensitive import postgres_url
 
 
 class DBHandler:
-    def __init__(self):
-        pass
-
     def connect(self):
         self.engine = create_engine(postgres_url)
 
