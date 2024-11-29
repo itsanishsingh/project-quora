@@ -11,7 +11,7 @@ from feature_engineering import FeatureManipulator
 from modelling import Modeller
 
 
-def training_pipeline(data, target):
+def training_pipeline(data, target, save_bool):
     reader = InputReader(data)
     df = reader.reader_logic()
     df = df.sample(5000, random_state=42)
@@ -43,10 +43,6 @@ def training_pipeline(data, target):
     X_test = train_w2v.vectorize(X_test)
     print("Vectorization done")
 
-    ext = FeatureManipulator(X_train, X_test)
-    X_train, X_test = ext.extraction()
-    print("PCA done")
-
     model = Modeller(X_train, y_train)
     model.rand_forest_clf()
     model.fit()
@@ -54,16 +50,20 @@ def training_pipeline(data, target):
 
     print(accuracy_score(y_test, y_pred))
 
-    # train_w2v.save_w2v()
-    # ext.save()
-    # model.save()
+    def save_models():
+        train_w2v.save_w2v()
+        model.save()
+
+    if save_bool:
+        save_models()
 
 
 def main():
     data = "data/questions.csv"
     target = "is_duplicate"
-    training_pipeline(data, target)
+    training_pipeline(data, target, save_bool=False)
 
 
 if __name__ == "__main__":
     main()
+c
