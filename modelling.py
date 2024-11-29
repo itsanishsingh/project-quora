@@ -24,4 +24,4 @@ class Modeller:
         return pred
 
     def save(self):
-        joblib.dump(self.model, "model.joblib")
+        joblib.dump(self.model, "model_w2v.joblib")

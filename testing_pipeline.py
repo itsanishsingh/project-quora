@@ -11,11 +11,21 @@ def test_data_transform(question1, question2):
     preprocessor.remove_int_column()
     test = preprocessor.data
 
-    test_vec = joblib.load("tfidf.joblib")
+    test_vec = joblib.load("w2v.joblib")
 
-    data_combined = [test.iloc[0, 0], test.iloc[0, 1]]
+    def document_vector(data):
+        doc = [word for word in data.split() if word in test_vec.wv.index_to_key]
+        if not doc:
+            return np.zeros(test_vec.vector_size)
+        return np.mean(test_vec.wv[doc], axis=0)
 
-    data_q1, data_q2 = np.vsplit(test_vec.transform(data_combined).toarray(), 2)
+    X_test_w2v = []
+    for column in test.columns:
+        for doc in test[column].values:
+            X_test_w2v.append(document_vector(doc))
+    test = np.array(X_test_w2v)
+
+    data_q1, data_q2 = np.vsplit(test, 2)
 
     temp1 = pd.DataFrame(data_q1)
     temp2 = pd.DataFrame(data_q2)

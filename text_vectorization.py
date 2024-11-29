@@ -35,19 +35,25 @@ class Vectorize:
 
     def create_story(self):
         story = []
-        for word in self.data:
-            raw_sent = sent_tokenize(word)
-            for sent in raw_sent:
-                story.append(simple_preprocess(sent))
+        for column in self.data.columns:
+            for word in self.data[column]:
+                raw_sent = sent_tokenize(word)
+                for sent in raw_sent:
+                    story.append(simple_preprocess(sent))
 
         return story
 
-    def vectorization(self):
-        model = gensim.models.Word2Vec(
+    def create_w2v_model(self):
+        self.model = gensim.models.Word2Vec(
             window=10,
             min_count=2,
         )
 
         story = self.create_story()
-        model.build_vocab(story)
-        model.train(story, total_examples=model.corpus_count, epochs=model.epochs)
+        self.model.build_vocab(story)
+        self.model.train(
+            story, total_examples=self.model.corpus_count, epochs=self.model.epochs
+        )
+
+    def save_w2v(self):
+        joblib.dump(self.model, "w2v.joblib")

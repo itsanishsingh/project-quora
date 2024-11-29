@@ -1,4 +1,3 @@
-from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score
 import pandas as pd
 import numpy as np
@@ -37,23 +36,40 @@ def training_pipeline(data):
     X_train, X_test, y_train, y_test = splitter.split(X, y)
     print("Train test split done")
 
-    train_vec = Vectorize(X_train)
-    X_train = train_vec.tfidf()
-    # train_vec.save()
+    train_w2v = Vectorize(X_train)
+    train_w2v.create_w2v_model()
+    # train_w2v.save_w2v()
+    w2v_model = joblib.load("w2v.joblib")
 
-    test_vec = joblib.load("tfidf.joblib")
+    def document_vector(data):
+        doc = [word for word in data.split() if word in w2v_model.wv.index_to_key]
+        if not doc:
+            return np.zeros(w2v_model.vector_size)
+        return np.mean(w2v_model.wv[doc], axis=0)
 
-    data_combined = []
-    for _, val in X_test.items():
-        temp = list(val)
-        data_combined += temp
+    X_train_w2v = []
+    for column in X_train.columns:
+        for doc in X_train[column].values:
+            X_train_w2v.append(document_vector(doc))
+    X_train = np.array(X_train_w2v)
 
-    test1, test2 = np.vsplit(test_vec.transform(data_combined).toarray(), 2)
+    X_test_w2v = []
+    for column in X_test.columns:
+        for doc in X_test[column].values:
+            X_test_w2v.append(document_vector(doc))
+    X_test = np.array(X_test_w2v)
 
+    print("Vectorization done")
+
+    train1, train2 = np.vsplit(X_train, 2)
+    temp1 = pd.DataFrame(train1)
+    temp2 = pd.DataFrame(train2)
+    X_train = pd.concat([temp1, temp2], axis=1)
+
+    test1, test2 = np.vsplit(X_test, 2)
     temp1 = pd.DataFrame(test1)
     temp2 = pd.DataFrame(test2)
     X_test = pd.concat([temp1, temp2], axis=1)
-    print("Vectorization done")
 
     ext = FeatureManipulator(X_train, X_test)
     X_train, X_test = ext.extraction()
